@@ -1,1 +1,165 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Listing</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1> Product Listing</h1>
+    <div class="search-section">
+      <input type="text" id="searchInput" placeholder="Search products..." />
+      <button onclick="searchProducts()">Search</button>
+      <p id="error" class="error"></p>
+    </div>
+
+    <div id="productList" class="product-list"></div>
+  </div>
+  <div class="sort-section">
+  <label for="sortSelect">Sort by price:</label>
+  <select id="sortSelect" onchange="sortProducts()">
+    <option value="">-- None --</option>
+    <option value="asc">Low to High</option>
+    <option value="desc">High to Low</option>
+  </select>
+</div>
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#searchInput {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  background-color: #fafafa;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.product-card img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+.sort-section {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+
+
+
+
+const productList = document.getElementById('productList');
+const errorText = document.getElementById('error');
+const sortSelect = document.getElementById('sortSelect');
+let currentProducts = []; 
+
+
+async function searchProducts() {
+  const query = document.getElementById('searchInput').value.trim();
+  errorText.textContent = '';
+  productList.innerHTML = '';
+  currentProducts = [];
+
+  if (!query) {
+    errorText.textContent = 'Please enter a search term.';
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://dummyjson.com/products/search?q=${query}`);
+    const data = await res.json();
+
+    if (data.products.length === 0) {
+      productList.innerHTML = `<p>No products found for "${query}".</p>`;
+      return;
+    }
+
+    currentProducts = data.products;
+    sortProducts(); 
+  } catch (err) {
+    errorText.textContent = 'Something went wrong while fetching products.';
+  }
+}
+
+function renderProducts(products) {
+  productList.innerHTML = '';
+
+  products.forEach(product => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <img src="${product.thumbnail}" alt="${product.title}" />
+      <h3>${product.title}</h3>
+      <p><strong>Price:</strong> $${product.price}</p>
+    `;
+    productList.appendChild(card);
+  });
+}
+
+function sortProducts() {
+  const sortValue = sortSelect.value;
+  let sortedProducts = [...currentProducts];
+
+  if (sortValue === 'asc') {
+    sortedProducts.sort((a, b) => a.price - b.price);
+  } else if (sortValue === 'desc') {
+    sortedProducts.sort((a, b) => b.price - a.price);
+  }
+
+  renderProducts(sortedProducts);
+}
 
